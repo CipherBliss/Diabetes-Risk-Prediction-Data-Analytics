@@ -1,0 +1,46 @@
+# Reports folder (excluded from version control)
+reports/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Smoke tests
+_smoke_test.py
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Environment files (secrets)
+.env
+.env.*
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Model artifacts (keep model/ folder; uncomment below if files exceed GitHub 100MB limit)
+# *.pkl
+# *.h5

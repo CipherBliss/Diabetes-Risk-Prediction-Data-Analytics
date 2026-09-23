@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diabetes Risk Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1f2328;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+      padding: 2.2rem 2.5rem;
+      width: 100%;
+      max-width: 680px;
+    }
+    h1 { font-size: 1.55rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .subtitle { color: #57606a; font-size: 0.92rem; margin-bottom: 1.6rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem 1.4rem; }
+    @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: 0.82rem; font-weight: 600;
+                   color: #57606a; margin-bottom: 0.3rem; }
+    .field input {
+      width: 100%; padding: 0.52rem 0.75rem;
+      border: 1.5px solid #d1d5db; border-radius: 6px;
+      font-size: 0.95rem; outline: none; transition: border 0.15s;
+    }
+    .field input:focus { border-color: #3b82d4; }
+    .btn {
+      display: block; width: 100%; margin-top: 1.6rem;
+      padding: 0.75rem; background: #3b82d4; color: #fff;
+      border: none; border-radius: 8px; font-size: 1rem;
+      font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    .btn:hover { background: #2563b0; }
+    .result {
+      margin-top: 1.4rem; padding: 1rem 1.2rem;
+      border-radius: 8px; font-size: 0.97rem; display: none;
+    }
+    .result.diabetic    { background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b; }
+    .result.healthy     { background: #f0fdf4; border: 1.5px solid #86efac; color: #14532d; }
+    .result.error       { background: #fff7ed; border: 1.5px solid #fdba74; color: #7c2d12; }
+    .result strong { font-size: 1.05rem; }
+    .prob-bar-wrap { margin-top: 0.7rem; background: #e5e7eb; border-radius: 99px; height: 10px; }
+    .prob-bar { height: 10px; border-radius: 99px; background: #3b82d4;
+                transition: width 0.4s; }
+    .prob-label { font-size: 0.8rem; color: #57606a; margin-top: 0.3rem; }
+    .disclaimer { margin-top: 1.2rem; font-size: 0.78rem; color: #57606a;
+                  border-top: 1px solid #e5e7eb; padding-top: 0.9rem; }
+    #spinner { display: none; text-align: center; margin-top: 1rem; color: #57606a; }
+    .api-note { font-size: 0.78rem; color: #57606a; margin-top: 0.5rem; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🩺 Diabetes Risk Predictor</h1>
+  <p class="subtitle">
+    Enter clinical measurements to assess diabetes risk.<br>
+    Model: Logistic Regression &mdash; trained on the Pima Indians Diabetes Dataset.
+  </p>
+
+  <form id="predForm">
+    <div class="grid">
+      <div class="field">
+        <label>Number of Pregnancies</label>
+        <input type="number" id="Pregnancies" min="0" max="20" value="1" required />
+      </div>
+      <div class="field">
+        <label>Plasma Glucose (mg/dL)</label>
+        <input type="number" id="Glucose" min="50" max="250" value="120" required />
+      </div>
+      <div class="field">
+        <label>Diastolic Blood Pressure (mmHg)</label>
+        <input type="number" id="BloodPressure" min="30" max="130" value="70" required />
+      </div>
+      <div class="field">
+        <label>Skin Fold Thickness (mm)</label>
+        <input type="number" id="SkinThickness" min="5" max="99" value="23" required />
+      </div>
+      <div class="field">
+        <label>2-Hour Serum Insulin (µU/mL)</label>
+        <input type="number" id="Insulin" min="0" max="900" value="80" required />
+      </div>
+      <div class="field">
+        <label>BMI (kg/m²)</label>
+        <input type="number" id="BMI" min="10" max="70" step="0.1" value="32.0" required />
+      </div>
+      <div class="field">
+        <label>Diabetes Pedigree Function</label>
+        <input type="number" id="DiabetesPedigreeFunction" min="0.07" max="2.5" step="0.01" value="0.47" required />
+      </div>
+      <div class="field">
+        <label>Age (years)</label>
+        <input type="number" id="Age" min="21" max="100" value="33" required />
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Predict Diabetes Risk</button>
+  </form>
+
+  <div id="spinner">Predicting…</div>
+
+  <div id="result" class="result">
+    <strong id="resultTitle"></strong>
+    <p id="resultDetail" style="margin-top:0.35rem;"></p>
+    <div class="prob-bar-wrap" style="margin-top:0.75rem;">
+      <div class="prob-bar" id="probBar" style="width:0%"></div>
+    </div>
+    <div class="prob-label" id="probLabel"></div>
+  </div>
+
+  <p class="api-note">
+    Requires the Flask API running at <code>http://localhost:5000</code>
+    &mdash; run <code>python backend/api.py</code>
+  </p>
+
+  <p class="disclaimer">
+    ⚠️ This tool is for educational and academic purposes only.
+    It is not a substitute for professional medical advice, diagnosis, or treatment.
+  </p>
+</div>
+
+<script>
+const API_URL = "http://localhost:5000/predict";
+const FIELDS  = [
+  "Pregnancies","Glucose","BloodPressure","SkinThickness",
+  "Insulin","BMI","DiabetesPedigreeFunction","Age"
+];
+
+document.getElementById("predForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const resultDiv = document.getElementById("result");
+  const spinner   = document.getElementById("spinner");
+  resultDiv.style.display = "none";
+  spinner.style.display   = "block";
+
+  const body = {};
+  FIELDS.forEach(f => { body[f] = parseFloat(document.getElementById(f).value); });
+
+  try {
+    const res  = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const pct  = Math.round(data.probability_diabetic * 100);
+
+    resultDiv.className = "result " + (data.prediction === 1 ? "diabetic" : "healthy");
+    document.getElementById("resultTitle").textContent =
+      data.prediction === 1
+        ? "⚠️ High Risk — Model predicts: Diabetic"
+        : "✅ Low Risk — Model predicts: Not Diabetic";
+    document.getElementById("resultDetail").textContent =
+      `Diabetes probability: ${pct}%`;
+    document.getElementById("probBar").style.width   = pct + "%";
+    document.getElementById("probLabel").textContent = `Risk score: ${pct}/100`;
+    resultDiv.style.display = "block";
+  } catch (err) {
+    resultDiv.className = "result error";
+    document.getElementById("resultTitle").textContent  = "❌ Error";
+    document.getElementById("resultDetail").textContent = err.message;
+    document.getElementById("probBar").style.width = "0%";
+    document.getElementById("probLabel").textContent = "";
+    resultDiv.style.display = "block";
+  } finally {
+    spinner.style.display = "none";
+  }
+});
+</script>
+</body>
+</html>

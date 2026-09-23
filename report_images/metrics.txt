@@ -1,0 +1,19 @@
+Accuracy  : 0.7078
+Precision : 0.6000
+Recall    : 0.5000
+F1-Score  : 0.5455
+ROC-AUC   : 0.8130
+
+Confusion Matrix:
+[[82 18]
+ [27 27]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+ No Diabetes       0.75      0.82      0.78       100
+    Diabetes       0.60      0.50      0.55        54
+
+    accuracy                           0.71       154
+   macro avg       0.68      0.66      0.67       154
+weighted avg       0.70      0.71      0.70       154
