@@ -11,7 +11,7 @@ An academic machine learning project that predicts diabetes risk using the Pima 
 | Name | Pima Indians Diabetes Database |
 | Source | National Institute of Diabetes and Digestive and Kidney Diseases |
 | UCI Repository | https://archive.ics.uci.edu/ml/datasets/diabetes |
-| Kaggle Mirror | https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database |
+| Kaggle Mirror |https://www.kaggle.com/datasets/jamaltariqcheema/pima-indians-diabetes-dataset |
 | Raw CSV | https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv |
 | Records | 768 |
 | Features | 8 numeric clinical measurements |
